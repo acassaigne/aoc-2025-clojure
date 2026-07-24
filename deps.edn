@@ -1,0 +1,10 @@
+{:deps
+ {clojure.java-time/clojure.java-time {:mvn/version "1.1.0"}
+  nrepl/nrepl {:mvn/version "1.7.0"}
+  reply/reply {:mvn/version "0.5.1"}}
+ 
+ :aliases
+ {:test {:main-opts ["-m" "kaocha.runner"]
+         :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}}}
+
+  }
