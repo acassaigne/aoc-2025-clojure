@@ -52,6 +52,10 @@
         start-position (->dial-position 50 0)]
     (reduce next-position start-position converted-dials)))
 
+(defn decode-password-v1
+  [dials]
+  (.counted-zero-passed (treat-dails-over dials)))
+
 (def start-dial-position (->dial-position 50 0))
 
 (deftest next-position-examples
@@ -70,9 +74,12 @@
     (is (= [2 4 -12] (convert-dials-to-values ["R2" "R4" "L12"])))))
 
 
-(deftest full-examples
-  (testing "Treat those dails R2 R4 from starting point 50"
+(deftest full-examples-treating-dials-to-new-position
+  (testing "New position when treating those dials R2 R4 from starting point 50"
     (is (= (->dial-position 56 0) (treat-dails-over ["R2" "R4"]))))
-(testing "Treat those dails R2 R4 L56 from starting point 50"
-    (is (= (->dial-position 0 1) (treat-dails-over ["R2" "R4" "L56"]))))
-  )
+(testing "New position when treating those dials R2 R4 L56 from starting point 50"
+    (is (= (->dial-position 0 1) (treat-dails-over ["R2" "R4" "L56"])))))
+
+(deftest tests-decode-password-v1
+  (testing "password "
+    (is (= 1 (decode-password-v1 ["R2" "L52"])))))
