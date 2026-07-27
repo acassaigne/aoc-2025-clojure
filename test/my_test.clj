@@ -5,7 +5,7 @@
 
 
 (defrecord dial-splited [direction distance])
-(defrecord dial-position [position counted-zero-passed])
+(defrecord dial-position [position zero-passed-counter])
 
 
 (defn split-dial
@@ -13,7 +13,7 @@
   (->dial-splited (subs dial 0 1)
                   (subs dial 1)))
 
-(defn splited-dial-to-value
+(defn split-dial-to-value
   [dial]
   (let [R-or-L (.direction dial)
         distance (Integer/parseInt  (.distance  dial)) ]
@@ -22,20 +22,30 @@
       distance)))
   
 
+(defn remain-from-100
+  [value]
+  (rem value 100))
+
+(defn get-new-position
+  [current-value distance]
+  (let [new-position (+ current-value (remain-from-100 distance))]
+    (if (< new-position 0)
+      (+ 100 new-position)
+      (remain-from-100 new-position)))
+   )
+
+(defn get-new-counted-zero
+  [new-position counted-zero]
+  (if (= new-position 0)
+    (inc counted-zero)
+    counted-zero))
+
 (defn next-position
-  [acc distance]
-(let
-    [new-position (+ (.position acc) (rem distance 100))
-     new-positive-position (if (< new-position 0)
-                             (+ 100 new-position)
-                             (rem new-position 100))
-     counted-zero (.counted-zero-passed acc)
-     new-dial (if (= new-positive-position 0)
-                (->dial-position new-positive-position (inc counted-zero))
-                (->dial-position new-positive-position counted-zero))
-     ]
-      ;;(println new-dial)
-    new-dial))
+  [current-position distance]
+  (let
+      [new-position (get-new-position (.position current-position) distance)
+       new-counted-zero (get-new-counted-zero new-position (.-zero-passed-counter current-position))]
+    (->dial-position new-position new-counted-zero)))
 
 (def d (->dial-splited "L" "48"))
 
@@ -43,17 +53,17 @@
   (testing "split dial L50"
     (is (= (->dial-splited "L" "50") (split-dial "L50")))))
 
-(deftest splited-dial-to-value-example
-  (testing "with splited dial L 50 get -50"
-    (is (= -50 (splited-dial-to-value (->dial-splited "L" "50")))))
-  (testing "with splited dial R 24 get 24"
-    (is (= 24 (splited-dial-to-value (->dial-splited "R" "24"))))))
+(deftest split-dial-to-value-example
+  (testing "with split dial L 50 get -50"
+    (is (= -50 (split-dial-to-value (->dial-splited "L" "50")))))
+  (testing "with split dial R 24 get 24"
+    (is (= 24 (split-dial-to-value (->dial-splited "R" "24"))))))
 
 (defn convert-dials-to-values
   [dial]
-  (map splited-dial-to-value  (map split-dial dial)))
+  (map split-dial-to-value (map split-dial dial)))
 
-(defn treat-dails-over
+(defn treat-dials-over
   [dials]
   (let [converted-dials (convert-dials-to-values dials)
         start-position (->dial-position 50 0)]
@@ -61,7 +71,7 @@
 
 (defn decode-password-v1
   [dials]
-  (.counted-zero-passed (treat-dails-over dials)))
+  (.-zero-passed-counter (treat-dials-over dials)))
 
 (defn read-dials
   [filename]
@@ -82,8 +92,6 @@
     (is (= (->dial-position 0 1) (next-position (->dial-position 52 0) 48))))
   )
 
-
-
 (deftest convert-multiples-dials-to-their-values
   (testing "convert dials to values"
     (is (= [2 4 -12] (convert-dials-to-values ["R2" "R4" "L12"])))))
@@ -91,9 +99,9 @@
 
 (deftest full-examples-treating-dials-to-new-position
   (testing "New position when treating those dials R2 R4 from starting point 50"
-    (is (= (->dial-position 56 0) (treat-dails-over ["R2" "R4"]))))
+    (is (= (->dial-position 56 0) (treat-dials-over ["R2" "R4"]))))
   (testing "New position when treating those dials R2 R4 L56 from starting point 50"
-    (is (= (->dial-position 0 1) (treat-dails-over ["R2" "R4" "L56"])))))
+    (is (= (->dial-position 0 1) (treat-dials-over ["R2" "R4" "L56"])))))
 
 (deftest tests-sample-file-decode-password-v1
   (testing "password for two simple dials"
