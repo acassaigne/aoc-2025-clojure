@@ -2,13 +2,13 @@
   (:require [clojure.test :refer :all])
   (:require [clojure.string :as str]))
 
-(defrecord dial-splited [direction distance])
+(defrecord rec-dial-split [direction distance])
 (defrecord dial-position [position zero-passed-counter])
 (defrecord debug-reduce [current-accumulator all-previous-accumulators])
 
 (defn split-dial
   [dial]
-  (->dial-splited (subs dial 0 1)
+  (->rec-dial-split (subs dial 0 1)
                   (subs dial 1)))
 
 (defn split-dial-to-value
@@ -104,13 +104,13 @@
 
 (deftest split-dial-example
   (testing "split dial L50"
-    (is (= (->dial-splited "L" "50") (split-dial "L50")))))
+    (is (= (->rec-dial-split "L" "50") (split-dial "L50")))))
 
 (deftest split-dial-to-value-example
   (testing "with split dial L 50 get -50"
-    (is (= -50 (split-dial-to-value (->dial-splited "L" "50")))))
+    (is (= -50 (split-dial-to-value (->rec-dial-split "L" "50")))))
   (testing "with split dial R 24 get 24"
-    (is (= 24 (split-dial-to-value (->dial-splited "R" "24"))))))
+    (is (= 24 (split-dial-to-value (->rec-dial-split "R" "24"))))))
 
 
 (def start-dial-position (->dial-position 50 0))
