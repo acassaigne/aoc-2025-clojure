@@ -97,9 +97,9 @@
   [current-dial-position distance]
   (let
     [start-position (get-position current-dial-position)
-     actual-counter (get-zero-passed-counter current-dial-position)
+     current-counter (get-zero-passed-counter current-dial-position)
      new-dial-position (compute-new-position-v2 start-position distance)
-     tmp-counter-for-zero (+ actual-counter
+     tmp-counter-for-zero (+ current-counter
                              (count-multiple-rounds distance)
                              (count-if-pass-over-zero start-position (remain-from-100 distance)))
      ]
@@ -120,15 +120,15 @@
   (->dial-position position zero-counter))
 
 (deftest bug-on-compute-new-position-v2
-  (testing "bug new-position-v2 arrived on zero"
+  (testing "new-position-v2 arrived on zero"
     (is (= (create-dial-position 0 2) (next-position-v2 (create-dial-position 52 1) 48))))
-  (testing "bug new-position-v2 below zero"
+  (testing "new-position-v2 pass over zero with negative movement"
     (is (= (create-dial-position 99 1) (next-position-v2 (create-dial-position 48 0) -49))))
-  (testing "bug on zero new-position-v2"
+  (testing "arriving exactly on zero with negative movement"
     (is (= (create-dial-position 0 1) (next-position-v2 (create-dial-position 52 0) -52))))
-  (testing "bug on 95 new-position-v2"
+  (testing "position start zero negative movement"
     (is (= (create-dial-position 95 0) (next-position-v2 (create-dial-position 0 0) -5))))
-  (testing "bug on L652 new-position-v2"
+  (testing "multiples rounds with a negative movement"
     (is (= (create-dial-position 48 6) (next-position-v2 (create-dial-position 0 0) -652))))
   )
 
