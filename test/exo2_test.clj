@@ -44,12 +44,65 @@
   (testing "1213 is an invalid id"
     (is (= false (is-invalid-id "1213")))))
 
+
+(defn conjoin-if-not-nil [maybe-number multiples]
+  (if (nil? maybe-number)
+    multiples
+    (conj multiples maybe-number)))
+
+(defn maybe-multiple [input-number a-possible-multiple]
+  (if (= 0 (rem input-number a-possible-multiple)) a-possible-multiple
+                                                   nil))
+
+(defn multiples-of [input-number]
+  (loop [current-value 1
+         result []]
+    (if (= current-value input-number)
+      result
+      (let [n (maybe-multiple input-number current-value)]
+        (recur (inc current-value)
+               (conjoin-if-not-nil n result))))))
+
+(deftest test-find-out-multiples-of
+  (testing "Multiple of 6 is 1, 2 and 3"
+    (is (= [1 2 3] (multiples-of 6))))
+  (testing "Multiple of 12 is 1, 2, 3, 4, 6"
+    (is (= [1 2 3 4 6] (multiples-of 12))))
+  (testing "Multiple of 11 is 1"
+    (is (= [1] (multiples-of 11)))))
+
+(defn is-invalid-id-for-size? [id size-pattern]
+  (let [partitions (partition size-pattern id)]
+    (every? (fn [value] (= (first partitions) value))
+            partitions)))
+
+
+(defn is-invalid-id-v2? [id]
+  (loop [multiples (multiples-of (count id)) result []]
+    (let [current-multiple (first multiples)]
+      (if (nil? current-multiple)
+        (if (some true? result) true false)
+        (recur (rest multiples) (conj result (is-invalid-id-for-size? id current-multiple)))))))
+
+(deftest test-is-invalid-id-v2
+  (testing "111 is an invalid id"
+    (is (= true (is-invalid-id-v2? "111"))))
+  (testing "101 is a valid id"
+    (is (= false (is-invalid-id-v2? "101"))))
+  (testing "1212 is an invalid id"
+    (is (= true (is-invalid-id-v2? "1212"))))
+  (testing "1214 is a valid id"
+    (is (= false (is-invalid-id-v2? "1214"))))
+  (testing "1188511885 is an invalid id"
+    (is (= true (is-invalid-id-v2? "1188511885"))))
+  (testing "38593859 is an invalid id"
+    (is (= true (is-invalid-id-v2? "38593859")))))
+
 (defrecord identifier-range [start end])
 
 (defn parse-identifier-range [string-range-id]
   (let [start-end (str/split string-range-id #"-")]
-    (->identifier-range (BigInteger. (first start-end)) (BigInteger. (second start-end))))
-  )
+    (->identifier-range (BigInteger. (first start-end)) (BigInteger. (second start-end)))))
 
 (defn make-identifiers [id-range]
   (map str (range (.start id-range) (inc (.end id-range)))))
@@ -59,6 +112,10 @@
 
 (defn keep-invalid-identifiers [ids]
   (map bigint (filter is-invalid-id ids)))
+
+(defn keep-invalid-identifiers-v2 [ids]
+  (map bigint (filter is-invalid-id-v2? ids)))
+
 
 (defn parse-input-ranges-identifiers [input]
   (map parse-identifier-range (str/split input #",")))
@@ -71,6 +128,12 @@
   (let [ranges-identifiers (map make-identifiers (parse-input-ranges-identifiers input-ranges-ids))
         invalid-identifiers (mapcat keep-invalid-identifiers ranges-identifiers)]
     (adding-up-invalid-identifiers invalid-identifiers)))
+
+(defn decode-exo2-v2 [input-ranges-ids]
+  (let [ranges-identifiers (map make-identifiers (parse-input-ranges-identifiers input-ranges-ids))
+        invalid-identifiers (mapcat keep-invalid-identifiers-v2 ranges-identifiers)]
+    (adding-up-invalid-identifiers invalid-identifiers)))
+
 
 (deftest test-parse-identifier-range
   (testing "Parsing range identifier"
@@ -108,6 +171,14 @@
   (testing "decode full sample gave in exercise 2"
     (is (= 1227775554 (decode-exo2-v1 "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124")))))
 
-(deftest test-decode-my-input-puzzle-exo2-v1
-  (testing "decode my puzzle exo2 v1"
-    (is (= 28846518423 (decode-exo2-v1 "385350926-385403705,48047-60838,6328350434-6328506208,638913-698668,850292-870981,656-1074,742552-796850,4457-6851,138-206,4644076-4851885,3298025-3353031,8594410816-8594543341,396-498,1558-2274,888446-916096,12101205-12154422,2323146444-2323289192,37-57,101-137,46550018-46679958,79-96,317592-341913,495310-629360,33246-46690,14711-22848,1-17,2850-4167,3723700171-3723785996,190169-242137,272559-298768,275-365,7697-11193,61-78,75373-110112,425397-451337,9796507-9899607,991845-1013464,77531934-77616074")))))
+(deftest test-decode-full-sample-exo2-v2
+  (testing "decode full sample gave in exercise 2 for part 2"
+    (is (= 4174379265 (decode-exo2-v2 "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124")))))
+
+;(deftest test-decode-my-input-puzzle-exo2-v1
+;  (testing "decode my puzzle exo2 v1"
+;    (is (= 28846518423 (decode-exo2-v1 "385350926-385403705,48047-60838,6328350434-6328506208,638913-698668,850292-870981,656-1074,742552-796850,4457-6851,138-206,4644076-4851885,3298025-3353031,8594410816-8594543341,396-498,1558-2274,888446-916096,12101205-12154422,2323146444-2323289192,37-57,101-137,46550018-46679958,79-96,317592-341913,495310-629360,33246-46690,14711-22848,1-17,2850-4167,3723700171-3723785996,190169-242137,272559-298768,275-365,7697-11193,61-78,75373-110112,425397-451337,9796507-9899607,991845-1013464,77531934-77616074")))))
+
+(deftest test-decode-my-input-puzzle-exo2-v2
+  (testing "decode my puzzle exo2 v2"
+    (is (= 31578210022 (decode-exo2-v2 "385350926-385403705,48047-60838,6328350434-6328506208,638913-698668,850292-870981,656-1074,742552-796850,4457-6851,138-206,4644076-4851885,3298025-3353031,8594410816-8594543341,396-498,1558-2274,888446-916096,12101205-12154422,2323146444-2323289192,37-57,101-137,46550018-46679958,79-96,317592-341913,495310-629360,33246-46690,14711-22848,1-17,2850-4167,3723700171-3723785996,190169-242137,272559-298768,275-365,7697-11193,61-78,75373-110112,425397-451337,9796507-9899607,991845-1013464,77531934-77616074")))))
