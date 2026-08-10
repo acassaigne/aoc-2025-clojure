@@ -1,7 +1,6 @@
 (ns exo2-test
-  (:require [clojure.test :refer :all])
   (:require [clojure.string :as str]
-            [clojure.tools.reader.impl.utils :refer [second']]))
+            [clojure.test :refer :all]))
 
 
 (defn split-identifier [identifier]
